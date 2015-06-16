@@ -96,13 +96,13 @@ PointsContainerPointer readLandmarksWithOrigin(string filename, ImagePointerType
     return points;
 }
 
-bool isInside(PointType point, double width, double height, double depth) {
+bool isInside(PointType pointECS, double width, double length, double depth) {
     //check if x smaller than width
     //check if y smaller than height
     //check if z smaller than depth
-    if (0 < point[0] && point[0] < width) { //x is width
-        if (0 < point[1] && point[1] < height) { //z is height
-            if (0 < point[2] && point[2] < depth) { //y is depth
+    if (0 < pointECS[0] && pointECS[0] < width) { //x is width
+        if (0 < pointECS[1] && pointECS[1] < length) { //z is height
+            if (0 < pointECS[2] && pointECS[2] < depth) { //y is depth
                 return true;
             }
         }
@@ -110,6 +110,11 @@ bool isInside(PointType point, double width, double height, double depth) {
     return false;
 
 }
+
+void printPoint(const PointType& point){
+    cout << "point: " << point[0] << " " << point[1] << " " << point[2] << endl;
+}
+
 
 int main( int argc, char* argv[] )
 {
@@ -169,6 +174,11 @@ int main( int argc, char* argv[] )
     PointType mandible = landmarks->GetElement(3);
     PointType nose = landmarks->GetElement(0);
 
+    printPoint(eye1);
+    printPoint(eye2);
+    printPoint(mandible);
+    printPoint(nose);
+
     //****************************************************************
     //****** calculate values for inside/outside computation *********
     //****************************************************************    
@@ -178,17 +188,11 @@ int main( int argc, char* argv[] )
     VectorType v2;
     v2 = mandible - eye1;
 
-    VectorType v3 = itk::CrossProduct(v2,v1);
+    VectorType v3 = itk::CrossProduct(v1,v2);
 
-    double width = abs(eye2[0] - eye1[0]);
-    double heigth = abs(mandible[2] - eye1[2]);
-    double depth = abs(nose[1]- eye1[1]);
+    v2 = itk::CrossProduct(v3,v1);
+
     
-    cout << "box has sizing: " << endl;
-    cout << "  width: " << width << endl;
-    cout << "  height: " << heigth << endl;
-    cout << "  depth: " << depth << endl;
-
     
     v1.Normalize();
     v2.Normalize();
@@ -206,8 +210,31 @@ int main( int argc, char* argv[] )
     M(0,2) = v3[0];
     M(1,2) = v3[1];
     M(2,2) = v3[2];
-
+  
     MatrixType inverseM = M.GetInverse();
+
+    PointType eye1ECS = inverseM * eye1;
+    PointType eye2ECS = inverseM * eye2;
+    PointType mandibleECS = inverseM * mandible;
+    PointType noseECS = inverseM * nose;
+    
+    cout << "ECS" << endl;
+    printPoint(eye1ECS);
+    printPoint(eye2ECS);
+    printPoint(mandibleECS);
+    printPoint(noseECS);
+
+    double width = abs(eye2ECS[0] - eye1ECS[0]);
+    double length = abs(mandibleECS[1] - eye1ECS[1]);
+    double depth = abs(noseECS[2]- eye1ECS[2]);
+    
+    cout << "box has sizing: " << endl;
+    cout << "  width: " << width << endl;
+    cout << "  height: " << length << endl;
+    cout << "  depth: " << depth << endl;
+
+
+    printPoint(inputImage->GetOrigin());
 
     //****************************************************************
     //****** iterate over image **************************************
@@ -219,11 +246,16 @@ int main( int argc, char* argv[] )
     while (!it.IsAtEnd()) {
         PointType queryPoint;
         inputImage->TransformIndexToPhysicalPoint(it.GetIndex(),queryPoint);
+        
+  //      printPoint(queryPoint);
+        
+        VectorType newPoint = queryPoint - eye1;
+        VectorType resultPoint = inverseM * newPoint;
 
-        PointType newPoint = queryPoint - eye1;
-        PointType resultPoint = inverseM * newPoint;
+        //printPoint(newPoint);
+        //printPoint(resultPoint);
 
-        if (isInside(resultPoint, width,heigth,depth)) {
+        if (isInside(resultPoint, width, length, depth)) {
             inputImage->SetPixel(it.GetIndex(), -1000);
         }
         ++it;
