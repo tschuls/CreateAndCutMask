@@ -100,9 +100,9 @@ bool isInside(PointType point, double width, double height, double depth) {
     //check if x smaller than width
     //check if y smaller than height
     //check if z smaller than depth
-    if (abs(point[0]) < width) {
-        if (abs(point[1]) < height) {
-            if (abs(point[2]) < depth) {
+    if (0 < point[0] && point[0] < width) { //x is width
+        if (0 < point[1] && point[1] < height) { //z is height
+            if (0 < point[2] && point[2] < depth) { //y is depth
                 return true;
             }
         }
@@ -180,9 +180,9 @@ int main( int argc, char* argv[] )
 
     VectorType v3 = itk::CrossProduct(v2,v1);
 
-    double width = v1.GetNorm();
-    double heigth = v2.GetNorm();
-    double depth = (nose - eye1).GetNorm();
+    double width = abs(eye2[0] - eye1[0]);
+    double heigth = abs(mandible[2] - eye1[2]);
+    double depth = abs(nose[1]- eye1[1]);
     
     cout << "box has sizing: " << endl;
     cout << "  width: " << width << endl;
@@ -223,7 +223,7 @@ int main( int argc, char* argv[] )
         PointType newPoint = queryPoint - eye1;
         PointType resultPoint = inverseM * newPoint;
 
-        if (!isInside(resultPoint, width,heigth,depth)) {
+        if (isInside(resultPoint, width,heigth,depth)) {
             inputImage->SetPixel(it.GetIndex(), -1000);
         }
         ++it;
