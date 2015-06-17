@@ -84,13 +84,11 @@ PointsContainerPointer readLandmarksWithOrigin(string filename, ImagePointerType
 
         }
         if (fullPoint){
-            //move point by: (Landmark-Origin)-Extent/2
-            point = point - origin;
-            for (int d=0;d<Dimension;++d) {
-                point[d] = point[d] - extent[d]/2;
-            }
-            points->InsertElement(i, point);
-            ++i;
+          //do not move the point by the origin, since the DICOM
+          //images read by this tool are still correctly aligned
+          //and the stored landmarks are already correct!
+          points->InsertElement(i, point);
+          ++i;
         }
     } 
     return points;
