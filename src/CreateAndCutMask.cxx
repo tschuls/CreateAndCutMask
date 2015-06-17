@@ -94,14 +94,15 @@ PointsContainerPointer readLandmarksWithOrigin(string filename, ImagePointerType
     return points;
 }
 
-bool isInside(PointType pointECS, double width, double length, double depth) {
+bool isInside(PointType pointECS, double width, double length, double depth, double marginWidth, double marginLength, double marginDepth) {
     //check if x smaller than width
-    //check if y smaller than height
+    //check if y smaller than length
     //check if z smaller than depth
-    if (0 < pointECS[0] && pointECS[0] < width) { //x is width
-        if (0 < pointECS[1] && pointECS[1] < length) { //z is height
-            if (0 < pointECS[2] && pointECS[2] < depth) { //y is depth
-                return true;
+    if ((0-marginWidth) < pointECS[0] && pointECS[0] < (width+marginWidth)) {
+        if ((0-marginLength) < pointECS[1] && pointECS[1] < (length+marginLength)) { 
+            if ( -(depth+ marginDepth) < pointECS[2] && pointECS[2] < (0+ marginDepth)) { 
+            //if ( (0-marginDepth) < pointECS[2] && pointECS[2] < (depth+ marginDepth)) { 
+              return true;
             }
         }
     }
@@ -253,7 +254,7 @@ int main( int argc, char* argv[] )
         //printPoint(newPoint);
         //printPoint(resultPoint);
 
-        if (isInside(resultPoint, width, length, depth)) {
+        if (isInside(resultPoint, width, length, depth, 15.0,5.0,20.0)) {
             inputImage->SetPixel(it.GetIndex(), -1000);
         }
         ++it;
