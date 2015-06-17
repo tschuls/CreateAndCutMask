@@ -19,6 +19,7 @@
 #include "itkGDCMSeriesFileNames.h"
 #include "itkImageSeriesReader.h"
 #include "itkImageSeriesWriter.h"
+#include "itkImageFileWriter.h"
 
 #include <vector>
 #include "itksys/SystemTools.hxx"
@@ -235,12 +236,22 @@ int main( int argc, char* argv[] )
 
     printPoint(inputImage->GetOrigin());
 
+    ImagePointerType maskImage = ImageType::New();
+    maskImage->SetRegions(inputImage->GetLargestPossibleRegion());
+    maskImage->SetOrigin(inputImage->GetOrigin());
+    maskImage->SetSpacing(inputImage->GetSpacing());
+    maskImage->SetDirection(inputImage->GetDirection());
+    maskImage->Allocate();
+
     //****************************************************************
-    //****** iterate over image **************************************
+    //****** iterate over image and mask *****************************
     //****************************************************************      
     typedef itk::ImageRegionIterator<ImageType> ItType;
     ItType it( inputImage, inputImage->GetLargestPossibleRegion() );
     it.GoToBegin();
+
+    ItType maskIt(maskImage, maskImage->GetLargestPossibleRegion());
+    maskIt.GoToBegin();
 
     while (!it.IsAtEnd()) {
         PointType queryPoint;
@@ -255,11 +266,25 @@ int main( int argc, char* argv[] )
         //printPoint(resultPoint);
 
         if (isInside(resultPoint, width, length, depth, 15.0,5.0,20.0)) {
-            inputImage->SetPixel(it.GetIndex(), -1000);
+          inputImage->SetPixel(it.GetIndex(), -1000);
+          maskImage->SetPixel(maskIt.GetIndex(), 0);
+        } else {
+          maskImage->SetPixel(maskIt.GetIndex(), 1);
         }
         ++it;
+        ++maskIt;
     }
 
+    //****************************************************************
+    //****** write mask out  *****************************************
+    //**************************************************************** 
+    typedef  itk::ImageFileWriter< ImageType  > WriterType;
+    WriterType::Pointer maskWriter = WriterType::New();
+    string name = "\\mask.vtk";
+    string maskFilename = argv[2] + name;
+    maskWriter->SetFileName(maskFilename);
+    maskWriter->SetInput(maskImage);
+    maskWriter->Update();
 
     //****************************************************************
     //****** write masked image out **********************************
