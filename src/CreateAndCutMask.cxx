@@ -228,7 +228,7 @@ int main( int argc, char* argv[] )
     
     cout << "box has sizing: " << endl;
     cout << "  width: " << width << endl;
-    cout << "  height: " << length << endl;
+    cout << "  length: " << length << endl;
     cout << "  depth: " << depth << endl;
 
 
