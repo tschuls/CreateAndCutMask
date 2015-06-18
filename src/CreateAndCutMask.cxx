@@ -139,12 +139,6 @@ int main( int argc, char* argv[] )
     const ReaderType::FileNamesContainer & filenames = namesGenerator->GetInputFileNames();
 
     const unsigned int numberOfFileNames =  filenames.size();
-    //std::cout << numberOfFileNames << std::endl;
-    //for(unsigned int fni = 0; fni < numberOfFileNames; ++fni)
-    //{
-    //    std::cout << "filename # " << fni << " = ";
-    //    std::cout << filenames[fni] << std::endl;
-    //}
     ReaderType::Pointer reader = ReaderType::New();
     reader->SetImageIO( gdcmIO );
     reader->SetFileNames( filenames );
@@ -171,12 +165,12 @@ int main( int argc, char* argv[] )
 
     PointType eye1 = landmarks->GetElement(1);
     PointType eye2 = landmarks->GetElement(2);
-    PointType mandible = landmarks->GetElement(3);
+    PointType gnathion = landmarks->GetElement(3);
     PointType nose = landmarks->GetElement(0);
 
     printPoint(eye1);
     printPoint(eye2);
-    printPoint(mandible);
+    printPoint(gnathion);
     printPoint(nose);
 
     //****************************************************************
@@ -186,7 +180,7 @@ int main( int argc, char* argv[] )
     v1 = eye2 - eye1;
 
     VectorType v2;
-    v2 = mandible - eye1;
+    v2 = gnathion - eye1;
 
     VectorType v3 = itk::CrossProduct(v1,v2);
 
@@ -215,17 +209,17 @@ int main( int argc, char* argv[] )
 
     PointType eye1ECS = inverseM * eye1;
     PointType eye2ECS = inverseM * eye2;
-    PointType mandibleECS = inverseM * mandible;
+    PointType gnathionECS = inverseM * gnathion;
     PointType noseECS = inverseM * nose;
     
     cout << "ECS" << endl;
     printPoint(eye1ECS);
     printPoint(eye2ECS);
-    printPoint(mandibleECS);
+    printPoint(gnathionECS);
     printPoint(noseECS);
 
     double width = abs(eye2ECS[0] - eye1ECS[0]);
-    double length = abs(mandibleECS[1] - eye1ECS[1]);
+    double length = abs(gnathionECS[1] - eye1ECS[1]);
     double depth = abs(noseECS[2]- eye1ECS[2]);
     
     cout << "box has sizing: " << endl;
