@@ -96,13 +96,12 @@ PointsContainerPointer readLandmarksWithOrigin(string filename, ImagePointerType
 }
 
 bool isInside(PointType pointECS, double width, double length, double depth, double marginWidth, double marginLength, double marginDepth) {
-    //check if x smaller than width
-    //check if y smaller than length
-    //check if z smaller than depth
+    //check if x smaller than width+marginWidth
+    //check if y smaller than length+marginLength
+    //check if z smaller than depth+marginDepth
     if ((0-marginWidth) < pointECS[0] && pointECS[0] < (width+marginWidth)) {
         if ((0-marginLength) < pointECS[1] && pointECS[1] < (length+marginLength)) { 
             if ( -(depth+ marginDepth) < pointECS[2] && pointECS[2] < (0+ marginDepth)) { 
-            //if ( (0-marginDepth) < pointECS[2] && pointECS[2] < (depth+ marginDepth)) { 
               return true;
             }
         }
@@ -121,7 +120,13 @@ int main( int argc, char* argv[] )
     if( argc < 4 )
     {
         std::cerr << "Usage: " << argv[0] <<
-            " DicomInputDirectory  OutputDicomDirectory landmarkFile" << std::endl;
+            "InputDicomDirectory  OutputDicomDirectory landmarkFile" << std::endl;
+        std::cerr << "Format of the landmark file: " << std::endl;
+        std::cerr << "    (origin)    e.g. -239.5 -239.5 -183.75 " << std::endl;
+        std::cerr << "    (nose)      e.g. -4.26322 -127.767 70.1066  " << std::endl;
+        std::cerr << "    (eye1)      e.g. -55.0607 -74.4404 92.9136  " << std::endl;
+        std::cerr << "    (eye2)      e.g.  48.6076 -73.5048 92.9136 " << std::endl;
+        std::cerr << "    (ganthion)  e.g. -7.37327 -108.12 -1.42449 " << std::endl;
         return EXIT_FAILURE;
     }
     
@@ -251,7 +256,7 @@ int main( int argc, char* argv[] )
         PointType queryPoint;
         inputImage->TransformIndexToPhysicalPoint(it.GetIndex(),queryPoint);
         
-  //      printPoint(queryPoint);
+        //printPoint(queryPoint);
         
         VectorType newPoint = queryPoint - eye1;
         VectorType resultPoint = inverseM * newPoint;
@@ -310,8 +315,6 @@ int main( int argc, char* argv[] )
         return EXIT_FAILURE;
     }
     return EXIT_SUCCESS;
-
-
 
 }
 
